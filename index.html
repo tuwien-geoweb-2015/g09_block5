@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Export map example</title>
+<link rel="stylesheet" href="http://openlayers.org/en/v3.11.0/css/ol.css" type="text/css">
+<script src="http://openlayers.org/en/v3.11.0/build/ol.js"></script>
+
+</head>
+<body>
+<form id="searchform"><input type="text" placeholder="Search, e.g. 'Vienna', 'Karlsplatz 13, Wien'"><input type="submit" value="Search">
+<div class="container-fluid">
+
+<div class="row-fluid">
+  <div class="span12">
+    <div id="map" class="map"></div>
+    <div id="no-download" class="alert alert-danger" style="display: none">
+      This example requires a browser that supports the
+      <a href="http://caniuse.com/#feat=download">link download</a> attribute.
+    </div>
+    <a id="export-png" class="btn btn-default" download="map.png"><i class="fa fa-download"></i> Export PNG</a>
+  </div>
+</div>
+
+</div>
+<script>
+var map = new ol.Map({
+  layers: [
+    new ol.layer.Tile({
+      source: new ol.source.OSM()
+    }),
+    new ol.layer.Vector({
+      source: new ol.source.Vector({
+        url: 'data/geojson/countries.geojson',
+        format: new ol.format.GeoJSON()
+      })
+    })
+  ],
+  target: 'map',
+  controls: ol.control.defaults({
+    attributionOptions: /** @type {olx.control.AttributionOptions} */ ({
+      collapsible: false
+    })
+  }),
+  view: new ol.View({
+    center: [0, 0],
+    zoom: 13
+  })
+});
+
+var geolocation = new ol.Geolocation({
+  projection: map.getView().getProjection(),
+  tracking: true
+});
+geolocation.once('change:position', function(evt) {
+  map.getView().setCenter(geolocation.getPosition());
+});
+
+var exportPNGElement = document.getElementById('export-png');
+
+if ('download' in exportPNGElement) {
+  exportPNGElement.addEventListener('click', function(e) {
+    map.once('postcompose', function(event) {
+      var canvas = event.context.canvas;
+      exportPNGElement.href = canvas.toDataURL('image/png');
+    });
+    map.renderSync();
+  }, false);
+} else {
+  var info = document.getElementById('no-download');
+  /**
+   * display error message
+   */
+  info.style.display = '';
+}
+
+</script>
+</body>
+</html>
