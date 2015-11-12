@@ -7,7 +7,7 @@
 
 </head>
 <body>
-<form id="searchform"><input type="text" placeholder="Search, e.g. 'Vienna', 'Karlsplatz 13, Wien'"><input type="submit" value="Search">
+<form id="searchform"><input type="text" size="50" name="search" placeholder="Search, e.g. 'Vienna', 'Karlsplatz 13, Wien'"><input type="submit" value="Search">
 <div class="container-fluid">
 
 <div class="row-fluid">
@@ -72,6 +72,27 @@ if ('download' in exportPNGElement) {
    */
   info.style.display = '';
 }
+
+var form = document.getElementById('searchform');
+form.onsubmit = function(evt){
+evt.preventDefault();
+var q = form.search.value;
+var url = 'http://nominatim.openstreetmap.org/search?format=json&q=' + q;
+var shr = XMLHttpRequest();
+shr.open('GET', url);
+xhr.onload = function() {
+var result = JSON.parse(xgr.reponseText);
+if (result.length > 0) {
+var first = result[0];
+form.search.value=first.display_name;
+map.getView().setCenter(ol.porj.fromLonLat([
+parseFloat(first.lon, 10),
+parseFloat(first.lat, 10)
+]));
+}
+};
+xhr.send();
+};
 
 </script>
 </body>
