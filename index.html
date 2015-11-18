@@ -7,11 +7,16 @@
 
 </head>
 <body>
-<form id="searchform"><input type="text" size="50" name="search" placeholder="Search, e.g. 'Vienna', 'Karlsplatz 13, Wien'"><input type="submit" value="Search"></form>
+<form id="searchform"><input type="text" size="50" name="search" placeholder="Search, e.g. 'Vienna', 'Karlsplatz 13, Wien'"><input type="submit" value="Auf diesen Ort zentrieren"></form>
+<form id="center"><input type="submit" value="Auf Position zentrieren"></form>
     <div id="map" class="map"></div>
 
 </div>
 <script>
+var Point = new ol.source.Vector({
+  features: new ol.Collection(),
+});
+
 var map = new ol.Map({
   layers: [
     new ol.layer.Tile({
@@ -22,6 +27,9 @@ var map = new ol.Map({
         url: 'data/geojson/countries.geojson',
         format: new ol.format.GeoJSON()
       })
+    }),
+	new ol.layer.Vector({
+      source: Point
     })
   ],
   target: 'map',
@@ -36,6 +44,8 @@ var map = new ol.Map({
   })
 });
 
+
+
 var geolocation = new ol.Geolocation({
   projection: map.getView().getProjection(),
   tracking: true
@@ -43,6 +53,17 @@ var geolocation = new ol.Geolocation({
 geolocation.once('change:position', function(evt) {
   map.getView().setCenter(geolocation.getPosition());
 });
+
+var feature = new ol.Feature();
+feature.setGeometryName('geom');
+feature.setGeometry(new ol.geom.Point(map.getView().getCenter()));
+Point.addFeature(feature);
+
+var form = document.getElementById('center');
+form.onsubmit = geolocation.once('change:position', function(evt) {
+  map.getView().setCenter(geolocation.getPosition());
+});
+
 
 
 var form = document.getElementById('searchform');
