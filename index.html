@@ -9,13 +9,11 @@
 <body>
 <form id="searchform"><input type="text" size="50" name="search" placeholder="Search, e.g. 'Vienna', 'Karlsplatz 13, Wien'"><input type="submit" value="Auf diesen Ort zentrieren"></form>
 <form id="center"><input type="submit" value="Auf Position zentrieren"></form>
-    <div id="map" class="map"></div>
+<div id="map" class="map"></div>
 
-</div>
 <script>
-var Point = new ol.source.Vector({
-  features: new ol.Collection(),
-});
+
+var marker = new ol.Feature();
 
 var map = new ol.Map({
   layers: [
@@ -24,27 +22,27 @@ var map = new ol.Map({
     }),
     new ol.layer.Vector({
       source: new ol.source.Vector({
-        url: 'data/geojson/countries.geojson',
-        format: new ol.format.GeoJSON()
+        features: [marker]
+      }),
+      style: new ol.style.Style({
+        image: new ol.style.Icon({
+          src: 'earthquake-3.png',
+          anchor: [0.5, 0.9]
+        })
       })
-    }),
-	new ol.layer.Vector({
-      source: Point
     })
   ],
-  target: 'map',
   controls: ol.control.defaults({
     attributionOptions: /** @type {olx.control.AttributionOptions} */ ({
       collapsible: false
     })
   }),
+  target: 'map',
   view: new ol.View({
     center: [0, 0],
     zoom: 13
   })
 });
-
-
 
 var geolocation = new ol.Geolocation({
   projection: map.getView().getProjection(),
@@ -52,16 +50,15 @@ var geolocation = new ol.Geolocation({
 });
 geolocation.once('change:position', function(evt) {
   map.getView().setCenter(geolocation.getPosition());
+  marker.setGeometry(new ol.geom.Point(map.getView().getCenter()));
 });
 
-var feature = new ol.Feature();
-feature.setGeometryName('geom');
-feature.setGeometry(new ol.geom.Point(map.getView().getCenter()));
-Point.addFeature(feature);
+
 
 var form = document.getElementById('center');
 form.onsubmit = geolocation.once('change:position', function(evt) {
   map.getView().setCenter(geolocation.getPosition());
+  marker.setGeometry(new ol.geom.Point(map.getView().getCenter()));
 });
 
 
@@ -79,13 +76,15 @@ form.onsubmit = function(evt) {
       var first = result[0];
       form.search.value = first.display_name;
       map.getView().setCenter(ol.proj.fromLonLat([
-        parseFloat(first.lon, 10),
-        parseFloat(first.lat, 10)
+        parseFloat(first.lon),
+        parseFloat(first.lat)
       ]));
+      marker.setGeometry(new ol.geom.Point(map.getView().getCenter()));
     }
   };
   xhr.send();
 };
+
 
 </script>
 </body>
